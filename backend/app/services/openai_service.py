@@ -17,8 +17,12 @@ class OpenAIService:
             resolved_key = "placeholder_openai_key"
             
         self.api_key = resolved_key
-        is_gemini = self.api_key.startswith("AIzaSy")
-        
+        is_gemini = False
+        if gemini_key and resolved_key == gemini_key:
+            is_gemini = True
+        elif resolved_key.startswith("AIza") or resolved_key.startswith("AQ."):
+            is_gemini = True
+            
         if is_gemini:
             logger.info("Initializing Google Gemini API Client via OpenAI compatibility layer")
             self.client = OpenAI(
