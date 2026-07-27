@@ -1,9 +1,9 @@
 services:
   # ----------------------------------------------------------------------------
-  # Backend FastAPI Web Service (Native Python)
+  # Unified Monday BI Agent Web Service (Native Python)
   # ----------------------------------------------------------------------------
   - type: web
-    name: monday-bi-agent-backend
+    name: monday-bi-agent
     env: python
     plan: free
     region: oregon
@@ -24,17 +24,3 @@ services:
         description: "Monday.com Deals Board ID"
       - key: PORT
         value: "8000"
-
-  # ----------------------------------------------------------------------------
-  # Frontend Static Site (Vanilla HTML/CSS/JS)
-  # ----------------------------------------------------------------------------
-  - type: web
-    name: monday-bi-agent-frontend
-    env: python
-    plan: free
-    region: oregon
-    buildCommand: ""
-    startCommand: "python -m http.server --directory frontend $PORT"
-    envVars:
-      - key: PORT
-        value: "3000"

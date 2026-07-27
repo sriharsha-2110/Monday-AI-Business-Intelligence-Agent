@@ -1,12 +1,7 @@
 // Monday BI Agent Client Engine
 
-// Auto-switch backend API URL based on host domain
-// Allows overriding the URL via LocalStorage for custom deployments
-const DEFAULT_BACKEND_URL = window.location.origin.includes("localhost") 
-  ? "http://localhost:8000" 
-  : "https://monday-bi-agent-backend.onrender.com";
-
-const API_URL = localStorage.getItem("MONDAY_BI_BACKEND_URL") || DEFAULT_BACKEND_URL;
+// Resolve the API URL to be the same origin the HTML is loaded from
+const API_URL = localStorage.getItem("MONDAY_BI_BACKEND_URL") || window.location.origin;
 
 // State Variables
 let chatHistory = [];

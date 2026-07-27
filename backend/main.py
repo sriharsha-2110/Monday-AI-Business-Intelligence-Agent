@@ -3,7 +3,8 @@ import sys
 import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, FileResponse
 
 # Ensure the backend directory is in the system path for clean imports
 backend_dir = os.path.dirname(os.path.abspath(__file__))
@@ -75,11 +76,24 @@ def health_check():
         }
     }
 
-@app.get("/")
-def read_root():
-    return {
-        "message": "Monday.com BI Agent Backend is running. Access API documentation at /docs"
-    }
+# Fallback 404 handler for Single Page Application routing (serves index.html for undefined paths)
+@app.exception_handler(404)
+async def custom_404_handler(request, exc):
+    if request.url.path.startswith("/api"):
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
+    frontend_dir = os.path.abspath(os.path.join(backend_dir, "..", "frontend"))
+    static_index = os.path.join(frontend_dir, "index.html")
+    if os.path.exists(static_index):
+        return FileResponse(static_index)
+    return JSONResponse(status_code=404, content={"detail": "Monday BI Agent Backend is running. Frontend static assets are missing."})
+
+# Mount vanilla frontend static files (after API routes are registered!)
+frontend_dir = os.path.abspath(os.path.join(backend_dir, "..", "frontend"))
+if os.path.exists(frontend_dir):
+    logger.info(f"Mounting frontend static files from: {frontend_dir}")
+    app.mount("/", StaticFiles(directory=frontend_dir, html=True), name="static")
+else:
+    logger.warning(f"Frontend static directory not found at: {frontend_dir}. Root path won't serve the UI.")
 
 
 if __name__ == "__main__":
