@@ -4,7 +4,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 # Ensure the backend directory is in the system path for clean imports
 backend_dir = os.path.dirname(os.path.abspath(__file__))
@@ -80,11 +80,11 @@ def health_check():
 @app.exception_handler(404)
 async def custom_404_handler(request, exc):
     if request.url.path.startswith("/api"):
-        return {"detail": "Not Found"}
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
     static_index = os.path.join(backend_dir, "static", "index.html")
     if os.path.exists(static_index):
         return FileResponse(static_index)
-    return {"detail": "Monday BI Agent Backend is running. Frontend static assets are missing."}
+    return JSONResponse(status_code=404, content={"detail": "Monday BI Agent Backend is running. Frontend static assets are missing."})
 
 # Mount Next.js static files (after API routes are registered!)
 static_dir = os.path.join(backend_dir, "static")
