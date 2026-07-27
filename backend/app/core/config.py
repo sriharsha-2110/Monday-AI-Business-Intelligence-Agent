@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     # API Keys with fallback defaults for local developer/test startup
     MONDAY_API_KEY: str = "placeholder_monday_key"
     OPENAI_API_KEY: str = "placeholder_openai_key"
+    GEMINI_API_KEY: str = "placeholder_gemini_key"
     
     # Monday.com Board IDs
     WORK_ORDER_BOARD_ID: str = "placeholder_work_order_board"

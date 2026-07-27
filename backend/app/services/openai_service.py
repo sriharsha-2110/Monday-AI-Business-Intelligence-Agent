@@ -8,9 +8,28 @@ from app.prompts.bi_prompts import FOUNDER_BI_SYSTEM_PROMPT, LEADERSHIP_SUMMARY_
 logger = logging.getLogger(__name__)
 
 class OpenAIService:
-    def __init__(self, api_key: str = settings.OPENAI_API_KEY):
-        self.api_key = api_key
-        self.client = OpenAI(api_key=self.api_key)
+    def __init__(self, api_key: str = None):
+        gemini_key = settings.GEMINI_API_KEY if settings.GEMINI_API_KEY != "placeholder_gemini_key" else None
+        openai_key = settings.OPENAI_API_KEY if settings.OPENAI_API_KEY != "placeholder_openai_key" else None
+        
+        resolved_key = api_key or gemini_key or openai_key
+        if not resolved_key:
+            resolved_key = "placeholder_openai_key"
+            
+        self.api_key = resolved_key
+        is_gemini = self.api_key.startswith("AIzaSy")
+        
+        if is_gemini:
+            logger.info("Initializing Google Gemini API Client via OpenAI compatibility layer")
+            self.client = OpenAI(
+                api_key=self.api_key,
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            )
+            self.model = "gemini-1.5-flash"
+        else:
+            logger.info("Initializing standard OpenAI API Client")
+            self.client = OpenAI(api_key=self.api_key)
+            self.model = "gpt-4o-mini"
 
     def calculate_business_metrics(self, deals: List[Dict[str, Any]], work_orders: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
@@ -174,7 +193,7 @@ User Question: {query}
         try:
             logger.info("Calling OpenAI chat completion for /chat endpoint")
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=messages,
                 temperature=0.2  # low temperature for stable analytical outputs
             )
@@ -212,7 +231,7 @@ User Question: {query}
         try:
             logger.info("Calling OpenAI chat completion for /leadership-summary")
             response = self.client.chat.completions.create(
-                model="gpt-4o-mini",
+                model=self.model,
                 messages=messages,
                 temperature=0.3
             )

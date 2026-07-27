@@ -16,6 +16,9 @@ services:
       - key: OPENAI_API_KEY
         sync: false
         description: "OpenAI GPT API Key"
+      - key: GEMINI_API_KEY
+        sync: false
+        description: "Google Gemini API Key (Optional, alternate to OPENAI_API_KEY)"
       - key: WORK_ORDER_BOARD_ID
         sync: false
         description: "Monday.com Work Orders Board ID"
