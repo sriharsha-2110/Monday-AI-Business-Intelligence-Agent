@@ -30,7 +30,7 @@ class OpenAIService:
                 api_key=self.api_key,
                 base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
             )
-            self.model = "gemini-1.5-flash"
+            self.model = "gemini-2.5-flash"
         else:
             logger.info("Initializing standard OpenAI API Client")
             self.client = OpenAI(api_key=self.api_key)
@@ -272,7 +272,7 @@ User Question: {query}
                 "parts": [{"text": msg["content"]}]
             })
             
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
         payload = {
             "contents": gemini_contents,
             "systemInstruction": {
