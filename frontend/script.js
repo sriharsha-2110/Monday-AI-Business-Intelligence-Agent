@@ -10,6 +10,23 @@ let compiledReport = null;
 let sectorChartInstance = null;
 let stageChartInstance = null;
 
+// Helper to safely parse JSON or return generic error message for HTML/502/503 errors
+async function handleResponseError(response, defaultMsg) {
+  let errMsg = defaultMsg;
+  try {
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const errData = await response.json();
+      errMsg = errData.detail || errMsg;
+    } else {
+      errMsg = `Server Error (${response.status}): The backend is currently starting up or unavailable.`;
+    }
+  } catch (e) {
+    errMsg = `Connection Error (${response.status}): Server returned a malformed response.`;
+  }
+  return new Error(errMsg);
+}
+
 // Initial Setup on DOM Load
 document.addEventListener("DOMContentLoaded", () => {
   // Initialize Lucide Icons
@@ -62,8 +79,7 @@ async function syncData() {
     // 1. Fetch Board Diagnostics
     const boardRes = await fetch(`${API_URL}/api/boards`);
     if (!boardRes.ok) {
-      const errData = await boardRes.json();
-      throw new Error(errData.detail || "Failed to fetch Monday board diagnostics");
+      throw await handleResponseError(boardRes, "Failed to fetch Monday board diagnostics");
     }
     const boardData = await boardRes.json();
     boardDiagnostics = boardData;
@@ -86,8 +102,7 @@ async function syncData() {
     // 2. Fetch KPI Metrics for Dashboard & Charts
     const kpiRes = await fetch(`${API_URL}/api/kpis`);
     if (!kpiRes.ok) {
-      const errData = await kpiRes.json();
-      throw new Error(errData.detail || "Failed to compile dashboard metrics");
+      throw await handleResponseError(kpiRes, "Failed to compile dashboard metrics");
     }
     const kpiData = await kpiRes.json();
     
@@ -282,8 +297,7 @@ async function sendChat(e) {
     });
 
     if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.detail || "Failed to get response");
+      throw await handleResponseError(res, "Failed to get response");
     }
 
     const data = await res.json();
@@ -395,8 +409,7 @@ async function generateReport() {
   try {
     const res = await fetch(`${API_URL}/api/leadership-summary`, { method: "POST" });
     if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.detail || "Failed to generate report");
+      throw await handleResponseError(res, "Failed to generate report");
     }
     const data = await res.json();
     compiledReport = data.report;
