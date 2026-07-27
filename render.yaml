@@ -26,14 +26,18 @@ services:
         value: "8000"
 
   # ----------------------------------------------------------------------------
-  # Frontend Next.js Static Site
+  # Frontend Next.js Web Service (Node.js)
   # ----------------------------------------------------------------------------
   - type: web
     name: monday-bi-agent-frontend
-    env: static
+    env: node
+    plan: free
+    region: oregon
     buildCommand: "cd frontend && npm install && npm run build"
-    staticPublishPath: "frontend/out"
+    startCommand: "cd frontend && npm start"
     envVars:
       - key: NEXT_PUBLIC_API_URL
         value: "https://monday-bi-agent-backend.onrender.com"
         description: "The live URL of the backend service"
+      - key: PORT
+        value: "3000"
