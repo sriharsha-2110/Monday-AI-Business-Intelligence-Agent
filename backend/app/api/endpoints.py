@@ -176,3 +176,31 @@ def get_boards_diagnostics():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Diagnostics failed: {str(e)}"
         )
+
+@router.get("/kpis")
+def get_kpis_endpoint():
+    """
+    Retrieves aggregated business KPIs (Revenue, Win Rate, Stage Distributions, Sector performance)
+    computed in Python to feed dashboard cards and Chart.js visualizations.
+    """
+    try:
+        monday = MondayService()
+        raw_deals = monday.fetch_board(settings.DEALS_BOARD_ID)
+        raw_wos = monday.fetch_board(settings.WORK_ORDER_BOARD_ID)
+        
+        cleaned_deals, deals_warnings = clean_deals_data(raw_deals)
+        cleaned_wos, wos_warnings = clean_work_orders_data(raw_wos)
+        
+        openai_service = OpenAIService()
+        metrics = openai_service.calculate_business_metrics(cleaned_deals, cleaned_wos)
+        
+        return {
+            "metrics": metrics,
+            "warnings": deals_warnings + wos_warnings
+        }
+    except Exception as e:
+        logger.error(f"Failed to calculate KPIs: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve dashboard analytics: {str(e)}"
+        )
