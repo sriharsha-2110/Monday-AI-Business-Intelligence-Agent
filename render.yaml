@@ -30,10 +30,11 @@ services:
   # ----------------------------------------------------------------------------
   - type: web
     name: monday-bi-agent-frontend
-    env: static
+    env: python
+    plan: free
+    region: oregon
     buildCommand: ""
-    staticPublishPath: "frontend"
+    startCommand: "python -m http.server --directory frontend $PORT"
     envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: "https://monday-bi-agent-backend.onrender.com"
-        description: "The live URL of the backend service"
+      - key: PORT
+        value: "3000"
