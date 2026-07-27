@@ -1,0 +1,40 @@
+services:
+  # ----------------------------------------------------------------------------
+  # Backend FastAPI Web Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: monday-bi-agent-backend
+    env: python
+    plan: starter
+    region: oregon
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: MONDAY_API_KEY
+        sync: false
+        description: "Monday.com API v2 token"
+      - key: OPENAI_API_KEY
+        sync: false
+        description: "OpenAI GPT API Key"
+      - key: WORK_ORDER_BOARD_ID
+        sync: false
+        description: "Monday.com Work Orders Board ID"
+      - key: DEALS_BOARD_ID
+        sync: false
+        description: "Monday.com Deals Board ID"
+      - key: PORT
+        value: "8000"
+
+  # ----------------------------------------------------------------------------
+  # Frontend Next.js Static Site
+  # ----------------------------------------------------------------------------
+  - type: static
+    name: monday-bi-agent-frontend
+    env: static
+    region: oregon
+    buildCommand: "cd frontend && npm install && npm run build"
+    publishPath: "frontend/out"
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: "https://monday-bi-agent-backend.onrender.com"
+        description: "The live URL of the backend service"
