@@ -28,7 +28,7 @@ services:
   # ----------------------------------------------------------------------------
   # Frontend Next.js Static Site
   # ----------------------------------------------------------------------------
-  - type: static
+  - type: web
     name: monday-bi-agent-frontend
     env: static
     region: oregon
