@@ -30,7 +30,7 @@ class OpenAIService:
                 api_key=self.api_key,
                 base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
             )
-            self.model = "gemini-2.5-flash"
+            self.model = "gemini-3.5-flash"
         else:
             logger.info("Initializing standard OpenAI API Client")
             self.client = OpenAI(api_key=self.api_key)
