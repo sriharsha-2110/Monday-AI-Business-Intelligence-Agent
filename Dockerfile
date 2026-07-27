@@ -4,7 +4,7 @@ WORKDIR /frontend
 
 # Copy dependencies list first
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy frontend source files
 COPY frontend/ .
