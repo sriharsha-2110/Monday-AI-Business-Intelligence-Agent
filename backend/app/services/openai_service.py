@@ -23,6 +23,7 @@ class OpenAIService:
         elif resolved_key.startswith("AIza") or resolved_key.startswith("AQ."):
             is_gemini = True
             
+        self.is_gemini = is_gemini
         if is_gemini:
             logger.info("Initializing Google Gemini API Client via OpenAI compatibility layer")
             self.client = OpenAI(
@@ -194,6 +195,13 @@ User Question: {query}
 """
         messages.append({"role": "user", "content": user_message_content})
         
+        if self.is_gemini:
+            return self._call_gemini_native(
+                system_prompt=FOUNDER_BI_SYSTEM_PROMPT,
+                messages=messages,
+                temperature=0.2
+            )
+
         try:
             logger.info("Calling OpenAI chat completion for /chat endpoint")
             response = self.client.chat.completions.create(
@@ -232,6 +240,13 @@ User Question: {query}
             }
         ]
         
+        if self.is_gemini:
+            return self._call_gemini_native(
+                system_prompt=LEADERSHIP_SUMMARY_SYSTEM_PROMPT,
+                messages=messages,
+                temperature=0.3
+            )
+
         try:
             logger.info("Calling OpenAI chat completion for /leadership-summary")
             response = self.client.chat.completions.create(
@@ -243,3 +258,42 @@ User Question: {query}
         except Exception as e:
             logger.error(f"OpenAI leadership summary completion error: {e}")
             raise Exception(f"AI Assistant Error: Failed to generate leadership summary ({str(e)})")
+
+    def _call_gemini_native(self, system_prompt: str, messages: List[Dict[str, str]], temperature: float) -> str:
+        import httpx
+        
+        gemini_contents = []
+        for msg in messages:
+            if msg["role"] == "system":
+                continue
+            role = "user" if msg["role"] == "user" else "model"
+            gemini_contents.append({
+                "role": role,
+                "parts": [{"text": msg["content"]}]
+            })
+            
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
+        payload = {
+            "contents": gemini_contents,
+            "systemInstruction": {
+                "parts": [{"text": system_prompt}]
+            },
+            "generationConfig": {
+                "temperature": temperature
+            }
+        }
+        
+        logger.info("Calling native Gemini generateContent API")
+        try:
+            with httpx.Client(timeout=60.0) as client:
+                res = client.post(url, json=payload)
+                if res.status_code != 200:
+                    logger.error(f"Gemini API Error: {res.status_code} - {res.text}")
+                    raise Exception(f"Gemini API error: {res.text}")
+                
+                res_data = res.json()
+                text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+                return text
+        except Exception as e:
+            logger.error(f"Failed to query Gemini native API: {e}")
+            raise Exception(f"Failed to query Gemini API: {str(e)}")
